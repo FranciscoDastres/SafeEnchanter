@@ -4,7 +4,7 @@
 ## Notes-esES: Desencantado manual asistido para TBC Classic Anniversary.
 ## Notes-esMX: Desencantado manual asistido para TBC Classic Anniversary.
 ## Author: SafeEnchanter contributors
-## Version: 0.1.0
+## Version: 0.1.1
 ## SavedVariables: SafeEnchanterDB
 ## IconTexture: Interface\Icons\INV_Enchant_Disenchant
 ## Category: Professions

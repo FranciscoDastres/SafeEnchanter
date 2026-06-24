@@ -24,6 +24,8 @@ local function ClearSecureAttributes()
     end
     button:SetAttribute("type", nil)
     button:SetAttribute("spell", nil)
+    button:SetAttribute("target-bag", nil)
+    button:SetAttribute("target-slot", nil)
     button:SetAttribute("target-item", nil)
     return true
 end
@@ -78,7 +80,11 @@ function Action:Arm(target)
 
     ClearSecureAttributes()
     button:SetAttribute("spell", NS.DISENCHANT_SPELL_ID)
-    button:SetAttribute("target-item", tostring(target.bag) .. " " .. tostring(target.slot))
+    -- SecureTemplates targets bag items through separate bag and slot
+    -- attributes. target-item is passed to SpellTargetItem and does not accept
+    -- a "bag slot" string.
+    button:SetAttribute("target-bag", target.bag)
+    button:SetAttribute("target-slot", target.slot)
     button:SetAttribute("type", "spell")
     armedTarget = target
     button:Enable()

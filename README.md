@@ -9,7 +9,7 @@ and exposes one secure action for the item currently shown.
 
 - One physical click attempts to disenchant exactly one displayed item.
 - The protected action is a `SecureActionButtonTemplate` with spell `13262` and
-  a fixed `target-item` bag slot.
+  fixed `target-bag` and `target-slot` attributes.
 - Inventory scans, timers, and events never cast a spell or use an item.
 - The queue advances only after the spell and inventory change are confirmed.
 - Loot is never collected automatically.
