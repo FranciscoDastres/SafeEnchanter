@@ -27,9 +27,13 @@ Lua errors and taint logging before compatibility testing with other addons.
 - Blue items show the appropriate shard bracket.
 - Vanilla and Outland items resolve localized material names and quantities.
 - Repeated tooltip refreshes do not duplicate prediction lines.
+- The action button tooltip shows the same probabilities for the currently
+  selected item.
 
 ## Protected action
 
+- The protected click works with `ActionButtonUseKeyDown` both enabled and
+  disabled in the client settings.
 - The button shows the exact item, ilvl, and queue size before it is enabled.
 - One click targets and destroys only the displayed item.
 - No second item is processed without another physical click.
