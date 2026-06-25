@@ -6,6 +6,7 @@ local Action = {}
 NS.Action = Action
 
 local button
+local hideButton
 local armedTarget
 local state = NS.ActionState:New()
 local lootOpen = false
@@ -43,6 +44,24 @@ local function SavePosition()
     }
 end
 
+local function ShowPanel()
+    if button then
+        button:Show()
+    end
+    if hideButton then
+        hideButton:Show()
+    end
+end
+
+local function HidePanel()
+    if hideButton then
+        hideButton:Hide()
+    end
+    if button then
+        button:Hide()
+    end
+end
+
 function Action:HasDisenchant()
     if C_SpellBook and C_SpellBook.IsSpellKnown then
         return C_SpellBook.IsSpellKnown(NS.DISENCHANT_SPELL_ID)
@@ -54,6 +73,38 @@ function Action:HasDisenchant()
         return IsPlayerSpell(NS.DISENCHANT_SPELL_ID)
     end
     return false
+end
+
+function Action:IsPanelVisible()
+    return Addon.db and Addon.db.profile.actionButtonVisible ~= false
+end
+
+function Action:SetPanelVisible(visible)
+    if not Addon.db then
+        return false
+    end
+    if InCombatLockdown() then
+        Addon:Print(L.MSG_PANEL_COMBAT)
+        return false
+    end
+
+    Addon.db.profile.actionButtonVisible = visible == true
+    if Addon.db.profile.actionButtonVisible then
+        ShowPanel()
+        self:Refresh()
+    else
+        self:Disarm()
+        HidePanel()
+    end
+
+    if NS.MinimapButton then
+        NS.MinimapButton:Refresh()
+    end
+    return true
+end
+
+function Action:TogglePanelVisible()
+    return self:SetPanelVisible(not self:IsPanelVisible())
 end
 
 function Action:Disarm(status)
@@ -100,12 +151,22 @@ function Action:Refresh()
     local targets = NS.TargetList
     button.count:SetText(string.format(L.ACTION_COUNT, #targets))
 
-    if not Addon.db.profile.enabled then
-        button:Hide()
-        self:Disarm(L.ACTION_DISABLED)
+    if not self:IsPanelVisible() then
+        self:Disarm()
+        if not InCombatLockdown() then
+            HidePanel()
+        end
         return
     end
-    button:Show()
+    ShowPanel()
+
+    if not Addon.db.profile.enabled then
+        self:Disarm(L.ACTION_DISABLED)
+        if not InCombatLockdown() then
+            HidePanel()
+        end
+        return
+    end
 
     if not NS.IsSupportedClient then
         self:Disarm(L.ACTION_UNSUPPORTED)
@@ -285,6 +346,23 @@ function Action:Initialize()
         SavePosition()
     end)
     button:SetMovable(true)
+
+    hideButton = CreateFrame("Button", "SafeEnchanterActionHideButton", UIParent, "UIPanelCloseButton")
+    hideButton:SetSize(20, 20)
+    hideButton:SetPoint("TOPRIGHT", button, "TOPRIGHT", 8, 8)
+    hideButton:SetFrameStrata(button:GetFrameStrata())
+    hideButton:SetFrameLevel(button:GetFrameLevel() + 5)
+    hideButton:SetScript("OnClick", function()
+        Action:SetPanelVisible(false)
+    end)
+    hideButton:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:AddLine(L.ACTION_HIDE, 1, 1, 1)
+        GameTooltip:Show()
+    end)
+    hideButton:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
 
     button:SetScript("PostClick", function()
         Action:BeginPending()
