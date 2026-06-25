@@ -231,6 +231,10 @@ function Action:Initialize()
     NS.ActionButton = button
     button:SetSize(230, 62)
     button:SetClampedToScreen(true)
+    -- This button deliberately registers only mouse-up clicks. Without this
+    -- override, SecureActionButtonTemplate follows ActionButtonUseKeyDown and
+    -- can skip the secure action while still running our PostClick handler.
+    button:SetAttribute("useOnKeyDown", false)
     button:RegisterForClicks("LeftButtonUp")
     button:SetBackdrop({
         bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
@@ -289,6 +293,9 @@ function Action:Initialize()
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:AddLine(L.ACTION_TOOLTIP_TITLE, 0.70, 0.35, 1.00)
         GameTooltip:AddLine(L.ACTION_TOOLTIP_BODY, 1, 1, 1, true)
+        if Addon.db.profile.showTooltips and armedTarget and armedTarget.outcomes and NS.Tooltip then
+            NS.Tooltip:AddOutcomeLines(GameTooltip, armedTarget.outcomes)
+        end
         GameTooltip:Show()
     end)
     button:SetScript("OnLeave", function()
