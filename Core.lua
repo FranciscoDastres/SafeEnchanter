@@ -31,6 +31,12 @@ function Addon:HandleSlash(input)
         NS.Action:Disarm(L.ACTION_STALE)
         NS.Scanner:ScheduleScan(0.05)
         self:Print(L.MSG_RESCAN)
+    elseif command == "show" then
+        NS.Action:SetPanelVisible(true)
+    elseif command == "hide" then
+        NS.Action:SetPanelVisible(false)
+    elseif command == "toggle" then
+        NS.Action:TogglePanelVisible()
     else
         self:Print(L.MSG_HELP)
     end
@@ -116,6 +122,7 @@ function Addon:OnInitialize()
     NS.Tooltip:Initialize()
     NS.Overlay:Initialize()
     NS.Action:Initialize()
+    NS.MinimapButton:Initialize()
     self:RegisterEvents()
     self:RegisterChatCommand("safeenchanter", "HandleSlash")
     self:RegisterChatCommand("se", "HandleSlash")
