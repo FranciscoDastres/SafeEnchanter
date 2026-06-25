@@ -16,6 +16,8 @@ local defaults = {
         protectedItemIDs = {},
         showTooltips = true,
         showOverlays = true,
+        showMinimapButton = true,
+        actionButtonVisible = true,
         buttonPosition = {},
     },
 }
@@ -131,6 +133,29 @@ function Config:RegisterOptions()
                     NS.Overlay:RefreshVisible()
                 end,
             },
+            actionButton = {
+                type = "toggle",
+                name = L.CONFIG_ACTION_BUTTON,
+                desc = L.CONFIG_ACTION_BUTTON_DESC,
+                order = 42,
+                get = function() return Addon.db.profile.actionButtonVisible ~= false end,
+                set = function(_, value)
+                    NS.Action:SetPanelVisible(value)
+                end,
+            },
+            minimapButton = {
+                type = "toggle",
+                name = L.CONFIG_MINIMAP_BUTTON,
+                desc = L.CONFIG_MINIMAP_BUTTON_DESC,
+                order = 43,
+                get = function() return Addon.db.profile.showMinimapButton ~= false end,
+                set = function(_, value)
+                    Addon.db.profile.showMinimapButton = value
+                    if NS.MinimapButton then
+                        NS.MinimapButton:Refresh()
+                    end
+                end,
+            },
             protected = {
                 type = "input",
                 name = L.CONFIG_PROTECTED,
@@ -162,6 +187,9 @@ function Config:RegisterOptions()
         NotifyChanged()
         if NS.ActionButton then
             NS.Action:Refresh()
+        end
+        if NS.MinimapButton then
+            NS.MinimapButton:Refresh()
         end
     end
     Addon.db.RegisterCallback(Addon, "OnProfileChanged", ProfileChanged)
