@@ -49,8 +49,12 @@ directory. Restart WoW or run `/reload` after installing.
 
 - `/safeenchanter config` or `/se config` opens the Ace3 configuration.
 - `/safeenchanter rescan` rebuilds the informational queue.
+- `/safeenchanter show`, `/safeenchanter hide`, and `/safeenchanter toggle`
+  control the action panel.
 
-Drag the small handle above the action button to reposition it.
+Drag the small handle above the action button to reposition it. Use the close
+button on the action panel to hide it when idle, then left-click the minimap
+button to show it again. Right-click the minimap button to open options.
 
 ## Development checks
 
