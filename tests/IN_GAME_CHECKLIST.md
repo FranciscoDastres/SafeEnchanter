@@ -7,8 +7,12 @@ Lua errors and taint logging before compatibility testing with other addons.
 
 - Addon loads on Interface 20505 without Lua errors.
 - `/safeenchanter config` opens the Ace3 panel.
+- `/safeenchanter show`, `/safeenchanter hide`, and `/safeenchanter toggle`
+  show and hide the action panel.
 - Profile changes and `/reload` preserve settings and button position.
 - A non-enchanter sees predictions but cannot activate the action button.
+- The minimap button left-click toggles the action panel and right-click opens
+  the options panel.
 
 ## Filters and overlays
 
