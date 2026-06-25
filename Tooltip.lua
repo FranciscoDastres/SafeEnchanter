@@ -12,6 +12,54 @@ local function GetItemInfo(item)
     return _G.GetItemInfo(item)
 end
 
+local function RequestItem(item)
+    local itemID = type(item) == "number" and item or tonumber(tostring(item or ""):match("item:(%d+)"))
+    if itemID and C_Item and C_Item.RequestLoadItemDataByID then
+        C_Item.RequestLoadItemDataByID(itemID)
+    elseif type(_G.GetItemInfo) == "function" then
+        _G.GetItemInfo(item)
+    end
+end
+
+local function IsForbiddenTooltip(tooltip)
+    if not tooltip or type(tooltip.IsForbidden) ~= "function" then
+        return false
+    end
+
+    local ok, forbidden = pcall(tooltip.IsForbidden, tooltip)
+    return ok and forbidden == true
+end
+
+local function GetTooltipItemLink(tooltip, data)
+    if type(data) == "table" and data.hyperlink then
+        return data.hyperlink
+    end
+
+    if tooltip and type(tooltip.GetItem) == "function" then
+        local ok, _, itemLink = pcall(tooltip.GetItem, tooltip)
+        if ok then
+            return itemLink
+        end
+    end
+
+    return nil
+end
+
+local function GetResolvedItemLevel(itemLink, itemLevel)
+    if type(itemLevel) == "number" and itemLevel > 0 then
+        return itemLevel
+    end
+
+    if type(_G.GetDetailedItemLevelInfo) == "function" then
+        local ok, detailedLevel = pcall(_G.GetDetailedItemLevelInfo, itemLink)
+        if ok and type(detailedLevel) == "number" and detailedLevel > 0 then
+            return detailedLevel
+        end
+    end
+
+    return itemLevel
+end
+
 local function GetItemIcon(itemID)
     if C_Item and C_Item.GetItemIconByID then
         return C_Item.GetItemIconByID(itemID)
@@ -37,27 +85,11 @@ local function FormatChance(chance)
     return string.format("%.1f", chance)
 end
 
-function Tooltip:AddPredictions(tooltip)
-    if not Addon.db or not Addon.db.profile.showTooltips or tooltip:IsForbidden() then
-        return
+function Tooltip:AddOutcomeLines(tooltip, outcomes)
+    if not tooltip or not outcomes or #outcomes == 0 or IsForbiddenTooltip(tooltip) then
+        return false
     end
 
-    local _, itemLink = tooltip:GetItem()
-    if not itemLink or tooltip.__SafeEnchanterLink == itemLink then
-        return
-    end
-
-    local _, _, quality, itemLevel, _, _, _, _, _, _, _, classID = GetItemInfo(itemLink)
-    if not quality or (classID ~= NS.ITEM_CLASS_WEAPON and classID ~= NS.ITEM_CLASS_ARMOR) then
-        return
-    end
-
-    local outcomes = NS.Rules.GetOutcomes(quality, classID, itemLevel)
-    if not outcomes then
-        return
-    end
-
-    tooltip.__SafeEnchanterLink = itemLink
     tooltip:AddLine(" ")
     tooltip:AddLine(L.PREDICTION_HEADER, 0.70, 0.35, 1.00)
 
@@ -77,7 +109,37 @@ function Tooltip:AddPredictions(tooltip)
         ), 0.85, 0.85, 0.85)
     end
 
-    tooltip:Show()
+    return true
+end
+
+function Tooltip:AddPredictions(tooltip, data)
+    if not Addon.db or not Addon.db.profile or not Addon.db.profile.showTooltips or IsForbiddenTooltip(tooltip) then
+        return
+    end
+
+    local itemLink = GetTooltipItemLink(tooltip, data)
+    if not itemLink or tooltip.__SafeEnchanterLink == itemLink then
+        return
+    end
+
+    local _, _, quality, itemLevel, _, _, _, _, _, _, _, classID = GetItemInfo(itemLink)
+    if not quality or (classID ~= NS.ITEM_CLASS_WEAPON and classID ~= NS.ITEM_CLASS_ARMOR) then
+        if not quality then
+            RequestItem(itemLink)
+        end
+        return
+    end
+
+    itemLevel = GetResolvedItemLevel(itemLink, itemLevel)
+    local outcomes = NS.Rules.GetOutcomes(quality, classID, itemLevel)
+    if not outcomes then
+        return
+    end
+
+    tooltip.__SafeEnchanterLink = itemLink
+    if self:AddOutcomeLines(tooltip, outcomes) then
+        tooltip:Show()
+    end
 end
 
 function Tooltip:ClearMarker(tooltip)
@@ -85,8 +147,8 @@ function Tooltip:ClearMarker(tooltip)
 end
 
 function Tooltip:Initialize()
-    local function callback(tooltip)
-        Tooltip:AddPredictions(tooltip)
+    local function callback(tooltip, data)
+        Tooltip:AddPredictions(tooltip, data)
     end
 
     if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall
